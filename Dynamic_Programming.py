@@ -105,7 +105,6 @@ class Dynamic_Programming():
                         next_v_max = np.maximum(next_v_max,next_v)
                     
                     next_v_table[row,column] = next_v_max
-                    print(next_v_table)
 
                     delta = np.maximum(delta, np.absolute(self.v_table[row,column] - next_v_table[row,column]))
 
@@ -177,7 +176,7 @@ discount_factor = 1
 a = Dynamic_Programming(state_table,terminal_state,policy_table,v_table,r_table,discount_factor)
 
 # You could do Policy Iteration or Value Iteration by changing the boolean (True, False):
-a.Iteration(dopolicyiteration=True,dovalueiteration=False)
+a.Iteration(dopolicyiteration=False,dovalueiteration=True)
 
 # # If you want to just do policy evaluation for policy iteration or value iteration use the following code:
 # a.policy_evaluation()
