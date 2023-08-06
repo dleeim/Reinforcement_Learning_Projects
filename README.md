@@ -1,5 +1,5 @@
-# Reinforcement_Learning_Book
-The repository is for codes that replicates pseudocode and examples that are presented in textbook Reinforcement Learning by Richard S. Sutton
+# Reinforcement_Learning_Projects
+The repository is for codes for Undergraduate Research Opportunity Program (UROP) during my 2nd year Summer Break
 
 ## Dynamic Programming
 
