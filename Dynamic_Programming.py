@@ -240,5 +240,3 @@ ax2.title.set_text('Policy')
 
 plt.show()
 
-y=0
-x = y+1
