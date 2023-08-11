@@ -30,8 +30,8 @@ class Tank():
         "use odeint from scipy to solve differential eq for time after 1 seconds"
 
         t = np.linspace(t, t+1, 2)
-        uncertainty = np.random.normal(0,0.5,1)
-        # uncertainty = 0
+        # uncertainty = np.random.normal(0,0.5,1)
+        uncertainty = 0
         h = odeint(self.differential_eq, h_initial, t, args = (V_in, uncertainty))[1]
         h = np.round(h, decimals = 1)
 
@@ -258,12 +258,10 @@ class Offpolicy_MCcontrol(MonteCarloAgent):
                                                                                     epsilongreedy= False)
         
             # Find how many state visited til termination
-            if i % 10 == 0:
-                state_history = self.optimalepisode_generator(policy_table=targetpolicy_table)
-                num_state_visited.append(len(state_history))
-                count.append(i)
-            else:
-                pass
+            state_history = self.optimalepisode_generator(policy_table=targetpolicy_table)
+            num_state_visited.append(len(state_history))
+            count.append(i)
+
 
             if i % 100 == 0:
                 print(f"Episode: {i} | Time required: {len(state_history)}")
