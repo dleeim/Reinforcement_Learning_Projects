@@ -31,7 +31,7 @@ class Tank():
 
         t = np.linspace(t, t+1, 2)
         uncertainty = np.random.normal(0,0.5,1)
-        uncertainty = 0
+        # uncertainty = 0
         h = odeint(self.differential_eq, h_initial, t, args = (V_in, uncertainty))[1]
         h = np.round(h, decimals = 1)
 
@@ -247,7 +247,7 @@ start_state = 13
 terminal_state= 10
 discount_rate = 1
 a = Offpolicy_MCcontrol(state_list= np.linspace(5,15,101), action_list= np.linspace(0,3,7), start_state = 13, terminal_state= 10, discount_rate = 1)
-numberofepisode_list = [25,50,75,100]
+numberofepisode_list = [100]
 offpolicy_notgreedy_list = []
 offpolicy_greedy_list = []
 std_offpolicy_notgreedy_list = []
@@ -262,7 +262,7 @@ for numberofepisode in numberofepisode_list:
     mean=0
     mean_q = 0
     var = 0
-    for i in range(1,31):
+    for i in range(1,10):
     
         q_table, behaviourpolicy_table, targetpolicy_table = a.Offpolicy_GPI(numberofepisode,epsilongreedy=False)
         optimalepisode_list = a.optmialepisode_generator(q_table)
@@ -281,7 +281,7 @@ for numberofepisode in numberofepisode_list:
     mean = 0
     mean_q = 0
     var = 0
-    for i in range(1,31):
+    for i in range(1,10):
         q_table, behaviourpolicy_table, targetpolicy_table = a.Offpolicy_GPI(numberofepisode,epsilongreedy=True)
         optimalepisode_list = a.optmialepisode_generator(q_table)
         total_state_visited = len(optimalepisode_list)
