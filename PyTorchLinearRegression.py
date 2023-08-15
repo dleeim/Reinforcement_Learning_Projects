@@ -2,7 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 from torch import nn
 
-
+# 1. Create data
 # Create the data parameters
 weight = 0.3
 bias = 0.9
@@ -12,14 +12,14 @@ y = weight * X + bias
 print(X.dtype)
 
 
-# Split the data into training and testing
+# 2. Split the data into training and testing
 train_split = int(len(X) * 0.8)
 X_train = X[:train_split]
 y_train = y[:train_split]
 X_test = X[train_split:]
 y_test = y[train_split:]
 
-# Plot the training and testing data 
+# 3. Plot the training and testing data 
 def plot_predictions(train_data,train_labels,test_data,test_labels,predictions=None):
 
     "Plots training data, test data dn compares predictions"
@@ -37,6 +37,7 @@ def plot_predictions(train_data,train_labels,test_data,test_labels,predictions=N
 
 # plot_predictions(train_data=X_train,train_labels=y_train,test_data=X_test,test_labels=y_test)
 
+# 4. Make a NN model
 class LinearRegressionModel(nn.Module):
   def __init__(self):
     super().__init__()
@@ -55,7 +56,7 @@ optimizer = torch.optim.SGD(params = model_1.parameters(),
 
 epochs = 1000
 
-
+# 5. Train the model
 for epoch in range(epochs):
   
   model_1.train()
@@ -73,7 +74,7 @@ for epoch in range(epochs):
       print(f"Epoch: {epoch} | Train loss: {loss:.3f} | Test loss: {test_loss:.3f}")
 
 
-# Make predictions with the model
+# 6. Make predictions with the model
 model_1.eval()
 
 with torch.inference_mode():
