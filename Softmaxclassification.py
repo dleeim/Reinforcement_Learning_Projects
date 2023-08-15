@@ -9,14 +9,14 @@ class model_softmax(nn.Module):
   def __init__(self):
     super().__init__()
     self.linear_layer = nn.Linear(in_features = 1,
-                                  out_features = 1)
+                                  out_features = 2)
     
   def forward(self,x : torch.Tensor) -> torch.Tensor:
     return self.linear_layer(x)
 
 # define loss, optimizier
 optimizer = torch.optim.SGD(model_softmax.parameters(), lr = 0.01)
-criterion = torch.nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss()
 
 # train the NN model
 Loss = []

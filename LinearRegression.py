@@ -9,8 +9,6 @@ bias = 0.9
 # Make X and y using linear regression feature
 X = torch.arange(0,100,0.1).unsqueeze(dim = 1)
 y = weight * X + bias
-print(X.dtype)
-
 
 # 2. Split the data into training and testing
 train_split = int(len(X) * 0.8)
