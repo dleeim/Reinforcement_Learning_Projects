@@ -40,7 +40,6 @@ def reinforce(env, estimator, n_episode, gamma=1.0):
     for episode in range(n_episode):
         log_probs = []
         rewards = []
-        total_reward_episode = []
         total_reward_episode = [0] * n_episode
         state = env.reset()
 
@@ -63,7 +62,7 @@ def reinforce(env, estimator, n_episode, gamma=1.0):
                 returns = torch.tensor(returns)
                 returns = (returns - returns.mean()) / (returns.std() + 1e-9)
                 estimator.update(returns, log_probs)
-                print("Episode: {}, total reward: {}'.format(episode, total_reward_episode[episode])")
+                print("Episode: {}, total reward: {}'.format(episode, return_episode[episode])")
                 break
             
             state = next_state

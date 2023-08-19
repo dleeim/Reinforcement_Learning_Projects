@@ -39,10 +39,57 @@ class Tank():
         h = np.round(h, decimals = 1)
 
         return h
-    
-# 1. agent: state, action, reward
+  
+# 1. NN: 2 layers with 24 units each in ReLU + 1 layer with 4 units each in softmax + loss function as policy gradient
 
-class Agent(Tank): 
+class PolicyNetwork():
+    
+    def __init__(self,state_list,action_list, n_hidden, lr):
+        
+        self.state_list = state_list
+        self.action_list = action_list
+
+        n_state = 1
+        n_action= len(action_list)
+
+        self.model = nn.Sequential(
+            nn.Linear(n_state,n_hidden),
+            nn.ReLU(),
+            nn.Linear(n_hidden, n_action),
+            nn.Softmax(dim=0),
+        )
+
+        self.optimizer = torch.optim.SGD(self.model.parameters(),lr)
+
+    def predict(self,s):
+        return self.model(torch.Tensor([s]))
+    
+    def update(self,returns,log_probs):
+
+        policy_gradient = []
+        
+        for log_prob, Gt in zip(log_probs, returns):
+            policy_gradient.append(-log_prob * Gt)
+
+        loss = torch.stack(policy_gradient, dim=0).sum()
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+    def get_action(self,s): # NEEDS Modification
+
+        probs = self.predict(s)
+        action_index = torch.multinomial(probs,1).item()
+
+        log_prob = torch.log(probs[action_index])
+        action = self.action_list[action_index]
+
+        return action, log_prob
+
+
+# 3. Runcode that makes an episode and gives it to NN to train.
+
+class PolicyGradient(Tank): 
 
     def __init__(self,state_list, action_list, start_state, terminal_state, discount_rate): 
         
@@ -56,10 +103,9 @@ class Agent(Tank):
         self.terminal_state = terminal_state
         self.discount_rate = discount_rate
 
-    def next_state_generator(self,state,action,t): 
+    def next_state_transition(self,state,action,t): 
          
         "Uses ODE Solver to generate Next State"
-
         state_max, state_min = np.max(self.state_list), np.min(self.state_list)
         next_state = self.ODE_Solver(state,action,t)[0]
 
@@ -71,124 +117,87 @@ class Agent(Tank):
         else: 
             pass
 
-        return next_state
+        if action > 1.5:
+            reward = - (10 - state) ** 2 - 6 * (action) ** 2 
+        else:
+            reward = - (10 - state) ** 2
 
+        if t >= 20:
+            reward += -100
+        else:
+            pass
+
+        return next_state, reward
     
-# 2. NN: 2 layers with 24 units each in ReLU + 1 layer with 4 units each in softmax + loss function as policy gradient
+    def episode_generator(self,NN_model):
+        state = 13
+        t = 0
 
-class NN_Model(nn.Module):
-  
-  def __init__(self):
-    super().__init__()
-    self.layer_1 = nn.Linear(1,7)
-    self.layer_2 = nn.Linear(7,7)
-    self.layer_3 = nn.Linear(7,7)
-    self.relu = nn.ReLU()
+        while True:
 
-  def forward(self, x : torch.Tensor) -> torch.Tensor:
-    out = self.layer_1(x)
-    out = self.relu(self.layer_2(out))
-    out = self.layer_3(out)
-    return out
+            action, log_prob = NN_model.get_action(state)
+            next_state, reward = self.next_state_transition(state, action, t)
+            t += 1
 
-# a = NN_Model()
-# state = 13
-# episode = []
-# policy_at_state = a.forward(torch.Tensor([state]))
-# action = random.choices([1,2,3,4,5,6,7],policy_at_state)[0]
-# print(action)
-
-# 3. Runcode that makes an episode and gives it to NN to train.
-
-class PolicyGradient_Agent(Agent,NN_Model):
-
-    def __init__(self, state_list, action_list, start_state, terminal_state, discount_rate):
-        Agent.__init__(self,state_list, action_list, start_state, terminal_state, discount_rate)
-        NN_Model.__init__(self)
-
-        self.actionindex_dict = {} 
-        i=0
-        for action in self.action_list:
-            self.actionindex_dict[action] = (i)
-            i = i + 1
-
-    def episode_generator(self): # Need to fix this
             
-        "Produces an episode (state, action, reward) based on policy"
 
-        t=0
-        state = self.start_state 
-        episode = []
-        epsilon = 1e-6
 
-        while abs(state - self.terminal_state) > epsilon:
-            
-            policy_at_state = nn.functional.softmax(self.forward(torch.Tensor([state])), dim=0)
-            action = random.choices(self.action_list,policy_at_state)[0] 
-            
-            if action > 1.5:
-                reward = - (10 - state) ** 2 - 6 * (action) ** 2 
-            else:
-                reward = - (10 - state) ** 2
+        pass
 
-            if t >= 10:
-                reward += -100
-                episode.append([state, action, reward])
-                break
-            else:
-                pass
+    def reinforce(self, NN_model, n_episode, gamma):
 
-            episode.append([state, action, reward])
-            next_state = self.next_state_generator(state,action,t) 
-            state = next_state
-            t=t+1
+        for episode in range(n_episode):
+            log_probs = []
+            rewards = []
+            return_episode = [0] * n_episode
+            state = 13
+            t = 0
 
-        return np.array(episode)
+            while True:
+                action, log_prob = NN_model.get_action(state)
+                next_state, reward = self.next_state_transition(state, action, t)
+                t += 1
 
-    def training_for_episode(self,learning_rate):
-        module = NN_Model()
-        criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.SGD(params=module.parameters(),
-                                    lr=learning_rate)
+                return_episode[episode] += reward
+                log_probs.append(log_prob)
+                rewards.append(reward)
 
-        episode = self.episode_generator()
-        i = 0 # Count
-        G = 0 # Return
+                if next_state == 10:
+                    returns = []
+                    Gt = 0
+                    pw = 0
 
-        for event in np.flip(episode):
-            
-            state = event[0]
-            action = event[1]
-            reward = event[2]
-            action_index = self.actionindex_dict[action]
+                    for reward in rewards[::-1]:
+                        Gt = gamma ** pw * reward
+                        pw += 1
+                        returns.append(Gt)
+                    
+                    returns = torch.Tensor(returns[::-1])
+                    returns = (returns - returns.mean()/(returns.std() + 1e-9))
+                    NN_model.update(returns, log_probs)
+                    print(f"Episode: {episode} | Return: {return_episode[episode]}")
+                    break
 
-            policy_at_state = self.forward(torch.Tensor([state]))
-            action_taken = np.zeros(len(self.action_list)) 
-            action_taken[action_index] = 1
-            action_taken = torch.Tensor(action_taken)
+                state = next_state
 
-            G += self.discount_rate ** i * reward
-            loss = self.discount_rate ** i * G * criterion(policy_at_state,action_taken) # discount rate need to be modified; look at pseudocode and try to understand
-
-            loss.backward()
-            optimizer.step()
-
-        return None
+        return return_episode
     
+a = PolicyNetwork(state_list=np.linspace(5,15,101),
+                  action_list=np.linspace(0,3,7),
+                  n_hidden=50,
+                  lr=0.001)
 
-# DUE LIST:
-# 1. see if multiplying G onto loss affects the loss.backward() and optimizer.step() correctly
-# 2. finishe the coding. You need to make function training for one episode under loop of episodes and make graph of loss vs episode and find time taken to reach to terminal state vs episode 
-
-        
-a = PolicyGradient_Agent(state_list=np.linspace(5,15,101),
+b = PolicyGradient(state_list=np.linspace(5,15,101),
                          action_list=np.linspace(0,3,7),
                          start_state=13,
                          terminal_state=10,
                          discount_rate=1)
 
-loss = a.training_for_episode(learning_rate=0.001)
 
+
+return_episode = b.reinforce(NN_model=a,
+                             n_episode=1,
+                             gamma=1)
 
 
 
