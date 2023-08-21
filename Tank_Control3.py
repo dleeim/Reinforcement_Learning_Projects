@@ -6,8 +6,6 @@ import torch
 from torch import nn
 import pandas as pd
 import matplotlib.pyplot as plt
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_columns', None)
 
 # 0. gridworld environment
 
@@ -69,8 +67,7 @@ class PolicyNetwork():
         policy_gradient = []
         
         for log_prob, Gt in zip(log_probs, returns):
-            policy_gradient.append(-log_prob * Gt)
-
+            policy_gradient.append(log_prob * Gt)
         loss = torch.stack(policy_gradient, dim=0).sum()
         self.optimizer.zero_grad()
         loss.backward()
@@ -85,6 +82,10 @@ class PolicyNetwork():
         action = self.action_list[action_index]
 
         return action, log_prob
+    
+    def save(self):
+        FILE = "model.pth"
+        torch.save(self.model.state_dict(), FILE)
 
 
 # 3. Runcode that makes an episode and gives it to NN to train.
@@ -128,41 +129,30 @@ class PolicyGradient(Tank):
             pass
 
         return next_state, reward
-    
-    def episode_generator(self,NN_model):
-        state = 13
-        t = 0
-
-        while True:
-
-            action, log_prob = NN_model.get_action(state)
-            next_state, reward = self.next_state_transition(state, action, t)
-            t += 1
-
-            
-
-
-        pass
 
     def reinforce(self, NN_model, n_episode, gamma):
-
+        return_episode = [0] * n_episode
+        print(NN_model.predict(13))
         for episode in range(n_episode):
             log_probs = []
             rewards = []
-            return_episode = [0] * n_episode
+            actions = []
             state = 13
+
             t = 0
 
             while True:
                 action, log_prob = NN_model.get_action(state)
+                actions.append(action)
                 next_state, reward = self.next_state_transition(state, action, t)
                 t += 1
 
                 return_episode[episode] += reward
                 log_probs.append(log_prob)
                 rewards.append(reward)
+                # print(f"t")
 
-                if next_state == 10:
+                if next_state == 10 or t >= 10:
                     returns = []
                     Gt = 0
                     pw = 0
@@ -173,9 +163,11 @@ class PolicyGradient(Tank):
                         returns.append(Gt)
                     
                     returns = torch.Tensor(returns[::-1])
-                    returns = (returns - returns.mean()/(returns.std() + 1e-9))
+                    # returns = (returns - returns.mean()/(returns.std() + 1e-9))
                     NN_model.update(returns, log_probs)
-                    print(f"Episode: {episode} | Return: {return_episode[episode]}")
+                    print(f"Episode: {episode+1} | Return: {return_episode[episode]}")
+                    print(f"PROB: {NN_model.predict(13)}")
+                    print(f"actions taken: {actions}")
                     break
 
                 state = next_state
@@ -185,7 +177,7 @@ class PolicyGradient(Tank):
 a = PolicyNetwork(state_list=np.linspace(5,15,101),
                   action_list=np.linspace(0,3,7),
                   n_hidden=50,
-                  lr=0.001)
+                  lr=0.00001)
 
 b = PolicyGradient(state_list=np.linspace(5,15,101),
                          action_list=np.linspace(0,3,7),
@@ -193,12 +185,19 @@ b = PolicyGradient(state_list=np.linspace(5,15,101),
                          terminal_state=10,
                          discount_rate=1)
 
-
-
 return_episode = b.reinforce(NN_model=a,
-                             n_episode=1,
+                             n_episode=7,
                              gamma=1)
 
-
-
 # # 4. Plot 2 graphs: Loss graph vs episode, mean squared error vs episode
+
+df1 = pd.DataFrame(return_episode)
+with pd.ExcelWriter('output.xlsx') as excel_writer:
+    df1.to_excel(excel_writer, sheet_name='Sheet1', index=False)
+
+plt.plot(return_episode)
+plt.show()
+
+# 5. test model
+
+
