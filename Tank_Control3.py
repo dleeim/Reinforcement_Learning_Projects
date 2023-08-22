@@ -1,10 +1,8 @@
 import math
-import random
 import numpy as np
 from scipy.integrate import odeint
 import torch
 from torch import nn
-from torch.autograd import gradcheck
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -52,15 +50,15 @@ class PolicyNetwork():
         n_action= len(action_list)
 
         self.model = nn.Sequential(
-            nn.Linear(n_state,n_action),
-            # nn.ReLU(),
-            # nn.Linear(n_hidden,n_hidden),
-            # nn.ReLU(),
-            # nn.Linear(n_hidden, n_action),
+            nn.Linear(n_state,n_hidden),
+            nn.ReLU(),
+            nn.Linear(n_hidden,n_hidden),
+            nn.ReLU(),
+            nn.Linear(n_hidden, n_action),
             nn.Softmax(dim=0),
         )
 
-        self.optimizer = torch.optim.SGD(self.model.parameters(),lr)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr)
 
     def predict(self,s):
         return self.model(torch.Tensor([s]))
@@ -68,21 +66,21 @@ class PolicyNetwork():
     def update(self,returns,log_probs):
 
         policy_gradient = []
-        for param in self.model[0].parameters():
-            print(param)
-            break
+        # for param in self.model[0].parameters():
+        #     print(param)
+        #     break
         for log_prob, Gt in zip(log_probs, returns):
             policy_gradient.append(-log_prob * Gt)
         loss = torch.stack(policy_gradient, dim=0).sum()
         self.optimizer.zero_grad()
         loss.backward()
-        for param in self.model[0].parameters():
-            print(param.grad)
-            break
+        # for param in self.model[0].parameters():
+        #     print(param.grad)
+        #     break
         self.optimizer.step()
-        for param in self.model[0].parameters():
-            print(param)
-            break
+        # for param in self.model[0].parameters():
+        #     print(param)
+        #     break
 
     def get_action(self,s): # NEEDS Modification
 
@@ -142,7 +140,7 @@ class PolicyGradient(Tank):
 
     def reinforce(self, NN_model, n_episode, gamma):
         return_episode = [0] * n_episode
-        print(f"PROB: {NN_model.predict(13)}")
+        # print(f"PROB: {NN_model.predict(13)}")
         for episode in range(n_episode):
             log_probs = []
             rewards = []
@@ -170,12 +168,12 @@ class PolicyGradient(Tank):
                         pw += 1
                         returns.append(Gt)
                     returns = torch.Tensor(returns[::-1])
-                    print(returns)
-                    returns = (returns - returns.mean()/(returns.std() + 1e-9))
+                    # print(returns)
+                    returns = (returns - returns.mean())/(returns.std() + 1e-9)
                     NN_model.update(returns, log_probs)
                     print(f"Episode: {episode+1} | Return: {return_episode[episode]}")
-                    print(f"actions taken: {actions}")
-                    print(f"PROB: {NN_model.predict(13)}")
+                    # print(f"actions taken: {actions}")
+                    # print(f"PROB: {NN_model.predict(13)}")
                     break
 
                 state = next_state
@@ -185,7 +183,7 @@ class PolicyGradient(Tank):
 a = PolicyNetwork(state_list=np.linspace(5,15,101),
                   action_list=np.linspace(0,3,7),
                   n_hidden=10,
-                  lr=0.001)
+                  lr=0.0001)
 
 b = PolicyGradient(state_list=np.linspace(5,15,101),
                          action_list=np.linspace(0,3,7),
@@ -194,7 +192,7 @@ b = PolicyGradient(state_list=np.linspace(5,15,101),
                          discount_rate=1)
 
 return_episode = b.reinforce(NN_model=a,
-                             n_episode=20,
+                             n_episode=10000,
                              gamma=1)
 
 # # 4. Plot 2 graphs: Loss graph vs episode, mean squared error vs episode
@@ -205,7 +203,3 @@ with pd.ExcelWriter('output.xlsx') as excel_writer:
 
 plt.plot(return_episode)
 plt.show()
-
-# 5. test model
-
-
