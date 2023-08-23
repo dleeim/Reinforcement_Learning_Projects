@@ -30,8 +30,8 @@ class Tank():
         "use odeint from scipy to solve differential eq for time after 1 seconds"
 
         t = np.linspace(t, t+1, 2)
-        # uncertainty = np.random.normal(0,0.5,1)
-        uncertainty = 0
+        uncertainty = np.random.normal(0,0.1,1)
+        # uncertainty = 0
         h = odeint(self.differential_eq, h_initial, t, args = (V_in, uncertainty))[1]
         h = np.round(h, decimals = 1)
 

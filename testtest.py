@@ -1,5 +1,5 @@
-import torch
+import torch 
 from torch import nn
-a = torch.Tensor([1,2,3,4,5])
-b = nn.functional.softmax(a)
-print(b)
+
+m2 = nn.Linear(3,4)
+print(m2.state_dict())
