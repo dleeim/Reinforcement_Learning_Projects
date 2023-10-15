@@ -1,19 +1,8 @@
 # Reinforcement_Learning_Projects
 The repository is for codes for Undergraduate Research Opportunity Program (UROP) during my 2nd year Summer Break
 
-## Dynamic Programming
-
-state table: 
-
-<img width="120" alt="Screenshot 2023-07-14 at 11 04 09" src="https://github.com/dleeim/Reinforcement_Learning_Book/assets/103705195/57eb8439-2587-4a74-8b15-1a6655ebb4b3"> 
-
-terminal state: [0,15] (blocks in the grey area)
-
-policy table: 
-
-<img width="250" src="https://github.com/dleeim/Reinforcement_Learning_Book/assets/103705195/07b47484-6ef3-4171-83bb-ee1675b1e770"> 
-
-
-### Output: 
-![Figure_1](https://github.com/dleeim/Reinforcement_Learning_Book/assets/103705195/1fd5ee98-60a6-4423-8a6c-1b8ea4e7d629)
-
+Content:
+1. Q-Learning on a grid world problem
+2. Dynamic programming to replicate the results of grid world problem in the textbook "Reinforcement Learning: An Introduction" by Richard S Sutton. The result was used during my presentation of chapter 4 Dynamic Programming during RL Book Club (Recording of my prsentation: https://youtu.be/LcxECYjn-Dk)
+4. Off-Policy Monte Carlo Method to reach to desired water level in water tank (finite horizon)
+5. Reinforce (Monte Carlo Policy Gradient) using Pytorch to reach to desired water level in water tank (finite horizon) 
