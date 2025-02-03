@@ -1,5 +1,5 @@
 # Reinforcement_Learning_Projects
-The repository is for codes for Undergraduate Research Opportunity Program (UROP) during my 2nd year Summer Break
+The repository is for codes for Reinforcement Learning studied during my 2nd year Summer Break
 
 Content:
 1. Q-Learning on a grid world problem
